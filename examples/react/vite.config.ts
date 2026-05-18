@@ -2,6 +2,7 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import vike from 'vike/plugin'
 import { vikeIslands } from 'vike-islands/react'
+import { createLmdbCache } from 'vike-islands/cache/lmdb'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 
@@ -14,7 +15,7 @@ export default defineConfig({
     },
   },
   plugins: [
-    vikeIslands(),
+    vikeIslands({ cache: createLmdbCache() }),
     react(),
     vike(),
   ],

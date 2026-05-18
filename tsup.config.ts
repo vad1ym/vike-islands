@@ -10,6 +10,7 @@ export default defineConfig([
       'react/+config': 'lib/react/+config.ts',
       'vue/__internal/onRenderHtml': 'lib/vue/onRenderHtml.ts',
       'react/__internal/onRenderHtml': 'lib/react/onRenderHtml.ts',
+      'cache/lmdb': 'lib/cache/lmdb.ts',
     },
     outDir: 'dist',
     format: ['esm'],
@@ -23,6 +24,7 @@ export default defineConfig([
       'react-dom/server',
       '@vue/compiler-sfc',
       '@vue/compiler-dom',
+      'lmdb',
     ],
   },
   {

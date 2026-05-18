@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import Counter from './Counter.vue?island'
 
-const { id, title, price, rating, reviewCount, category, tags, inStock, description, imageIndex } = defineProps<{
+const { id, title, price, rating, reviewCount, category, tags, inStock, description, imageIndex, thumbnail } = defineProps<{
   id: number
   title: string
   price: number
@@ -12,6 +13,7 @@ const { id, title, price, rating, reviewCount, category, tags, inStock, descript
   inStock: boolean
   description: string
   imageIndex: number
+  thumbnail?: string
 }>()
 
 const liked = ref(false)
@@ -22,11 +24,16 @@ function addToCart() {
   added.value = true
   setTimeout(() => added.value = false, 1500)
 }
+
+function debug() {
+  console.log('Product card rendered')
+}
 </script>
 
 <template>
   <div class="product-card" :class="{ 'out-of-stock': !inStock }">
-    <div class="product-image" :style="`background: hsl(${imageIndex * 37 % 360}, 60%, 85%)`">
+    {{ debug() }}
+    <div class="product-image" :style="thumbnail ? '' : `background: hsl(${imageIndex * 37 % 360}, 60%, 85%)`">
       <span class="product-id">#{{ id }}</span>
       <button class="like-btn" :class="{ liked }" @click="liked = !liked">
         {{ liked ? '♥' : '♡' }}
@@ -61,9 +68,10 @@ function addToCart() {
         </div>
         <div class="cart-controls">
           <div class="qty-control">
-            <button @click="quantity = Math.max(1, quantity - 1)">−</button>
+            <!-- <button @click="quantity = Math.max(1, quantity - 1)">−</button>
             <span>{{ quantity }}</span>
-            <button @click="quantity++">+</button>
+            <button @click="quantity++">+</button> -->
+            <Counter client:load />
           </div>
           <button class="add-btn" :class="{ added }" :disabled="!inStock" @click="addToCart">
             {{ added ? '✓ Added' : 'Add to Cart' }}

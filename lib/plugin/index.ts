@@ -1,6 +1,9 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { mergeConfig, type Plugin, type UserConfig } from 'vite'
+import type { IslandCacheAdapter } from '../core/cache'
+
+const GLOBAL_CACHE_KEY = '__vikeIslandsCacheAdapter__'
 
 const ISLANDS_REACT_RUNTIME_PUBLIC_ID = '/@vike-islands/react-runtime'
 const RESOLVED_ISLANDS_REACT_RUNTIME_ID = '\0vike-islands:react-runtime'
@@ -16,30 +19,34 @@ export type SupportedFramework = 'vue' | 'react'
 
 export interface VikeIslandsPluginOptions {
   framework: SupportedFramework
-  /**
-   * Optional transform hook — framework adapters inject their own file transform here.
-   * Called for every file Vite processes; return null/undefined to skip.
-   */
   transform?: (code: string, id: string) => string | null | undefined
-  /**
-   * Called at the start of each build — use to reset per-build state in the adapter.
-   */
   onBuildStart?: () => void
+  cache?: IslandCacheAdapter
 }
 
 function normalizePathForVite(filePath: string): string {
   return filePath.split(path.sep).join('/')
 }
 
-function getIslandFileSuffixes(framework: SupportedFramework): string[] {
-  return framework === 'react'
-    ? ['.island.tsx', '.island.jsx']
-    : ['.island.vue']
+type AliasEntry = { find: string | RegExp; replacement: string }
+
+function resolveAlias(specifier: string, aliases: AliasEntry[]): string | null {
+  for (const { find, replacement } of aliases) {
+    if (typeof find === 'string') {
+      if (specifier.startsWith(find)) {
+        return replacement + specifier.slice(find.length)
+      }
+    } else if (find.test(specifier)) {
+      return specifier.replace(find, replacement)
+    }
+  }
+  return null
 }
 
-function scanIslandFiles(rootDir: string, framework: SupportedFramework): string[] {
-  const files: string[] = []
-  const suffixes = getIslandFileSuffixes(framework)
+// Grep all source files for `?island` imports, resolve paths, return islandName -> filePath.
+function scanIslandImports(rootDir: string, aliases: AliasEntry[]): Map<string, string> {
+  const result = new Map<string, string>()
+  const extensions = ['.vue', '.tsx', '.jsx', '.ts', '.js']
 
   function walk(dir: string): void {
     for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -48,53 +55,52 @@ function scanIslandFiles(rootDir: string, framework: SupportedFramework): string
         walk(path.join(dir, entry.name))
         continue
       }
+      if (!entry.isFile() || !extensions.some(ext => entry.name.endsWith(ext))) continue
 
-      if (entry.isFile() && suffixes.some((suffix) => entry.name.endsWith(suffix))) {
-        files.push(path.join(dir, entry.name))
+      const filePath = path.join(dir, entry.name)
+      const code = fs.readFileSync(filePath, 'utf8')
+      if (!code.includes('?island')) continue
+
+      const importPattern = /from\s+['"]([^'"]+\?island)['"]/g
+      let m: RegExpExecArray | null
+      while ((m = importPattern.exec(code)) !== null) {
+        const specifier = m[1].replace('?island', '')
+
+        let resolved: string
+        if (specifier.startsWith('.')) {
+          resolved = path.resolve(path.dirname(filePath), specifier)
+        } else {
+          const aliased = resolveAlias(specifier, aliases)
+          if (!aliased) continue
+          resolved = aliased
+        }
+
+        // Try with and without extension
+        const candidates = fs.existsSync(resolved)
+          ? [resolved]
+          : extensions.map(ext => resolved + ext).filter(fs.existsSync)
+
+        if (candidates.length === 0) continue
+
+        const resolvedPath = candidates[0]
+        const ext = path.extname(resolvedPath)
+        const islandName = path.basename(resolvedPath, ext)
+        result.set(islandName, resolvedPath)
       }
     }
   }
 
   walk(rootDir)
-  return files.sort()
-}
-
-function getIslandName(filePath: string, framework: SupportedFramework): string {
-  const suffix = getIslandFileSuffixes(framework).find((candidate) => filePath.endsWith(candidate))
-  if (!suffix) {
-    throw new Error(`[vike-islands] Unsupported island file: ${filePath}`)
-  }
-  return path.basename(filePath, suffix)
-}
-
-function validateIslandFiles(rootDir: string, framework: SupportedFramework): Map<string, string> {
-  const islandFiles = scanIslandFiles(rootDir, framework)
-  const filesByName = new Map<string, string[]>()
-
-  for (const filePath of islandFiles) {
-    const name = getIslandName(filePath, framework)
-    const list = filesByName.get(name) ?? []
-    list.push(filePath)
-    filesByName.set(name, list)
-  }
-
-  const duplicates = [...filesByName.entries()].filter(([, files]) => files.length > 1)
-  if (duplicates.length > 0) {
-    const details = duplicates
-      .map(([name, files]) => `${name}: ${files.map((file) => path.relative(rootDir, file)).join(', ')}`)
-      .join('\n')
-    throw new Error(`[vike-islands] Duplicate island component names found.\n${details}`)
-  }
-
-  return new Map([...filesByName.entries()].map(([name, [filePath]]) => [name, filePath]))
+  return result
 }
 
 function addBuildInputs(
   rootDir: string,
+  aliases: AliasEntry[],
   framework: SupportedFramework,
   input: NonNullable<NonNullable<UserConfig['build']>['rollupOptions']>['input'],
 ): Record<string, string> {
-  const islandFiles = validateIslandFiles(rootDir, framework)
+  const islandFiles = scanIslandImports(rootDir, aliases)
 
   const islandsInputs = Object.fromEntries(
     [...islandFiles.keys()].map((name) => [`vike-islands-component-${name}`, `${ISLANDS_COMPONENT_PUBLIC_PREFIX}${name}`]),
@@ -103,12 +109,8 @@ function addBuildInputs(
     ? { [ISLANDS_REACT_RUNTIME_NAME]: ISLANDS_REACT_RUNTIME_PUBLIC_ID }
     : { [ISLANDS_VUE_RUNTIME_NAME]: ISLANDS_VUE_RUNTIME_PUBLIC_ID }
 
-  if (!input) {
-    return { ...runtimeEntries, ...islandsInputs }
-  }
-  if (typeof input === 'string') {
-    return { main: input, ...runtimeEntries, ...islandsInputs }
-  }
+  if (!input) return { ...runtimeEntries, ...islandsInputs }
+  if (typeof input === 'string') return { main: input, ...runtimeEntries, ...islandsInputs }
   if (Array.isArray(input)) {
     return Object.fromEntries([
       ...input.map((value, index) => [`entry${index}`, value]),
@@ -116,7 +118,6 @@ function addBuildInputs(
       ...Object.entries(islandsInputs),
     ])
   }
-
   return { ...input, ...runtimeEntries, ...islandsInputs }
 }
 
@@ -125,20 +126,21 @@ function mergeManualChunks(existing: any, framework: SupportedFramework): any {
     if (framework === 'react' && (id.includes('/node_modules/react/') || id.includes('/node_modules/react-dom/'))) return 'react-runtime'
     if (framework === 'vue' && (id.includes('/node_modules/@vue/') || id.includes('/node_modules/vue/'))) return 'vue-runtime'
     if (id.includes('/node_modules/vike/dist/client/')) return 'vike-runtime'
-    return
   }
 
   if (!existing) return ours
-  if (typeof existing === 'function') {
-    return (id: string, meta: unknown) => ours(id) ?? existing(id, meta as never)
-  }
-
+  if (typeof existing === 'function') return (id: string, meta: unknown) => ours(id) ?? existing(id, meta as never)
   return existing
 }
 
 export function vikeIslandsPlugin(options: VikeIslandsPluginOptions): Plugin {
   let rootDir = process.cwd()
-  const { framework, transform, onBuildStart } = options
+  let aliases: AliasEntry[] = []
+  const { framework, transform, onBuildStart, cache } = options
+
+  if (cache) {
+    ;(globalThis as any)[GLOBAL_CACHE_KEY] = cache
+  }
 
   return {
     name: 'vike-islands',
@@ -146,10 +148,20 @@ export function vikeIslandsPlugin(options: VikeIslandsPluginOptions): Plugin {
 
     configResolved(config) {
       rootDir = config.root
+      const raw = config.resolve?.alias ?? []
+      aliases = Array.isArray(raw)
+        ? raw
+        : Object.entries(raw).map(([find, replacement]) => ({ find, replacement: replacement as string }))
     },
 
     config(config) {
       const scanRoot = path.resolve(config.root ?? process.cwd())
+      // Build aliases from config for scanning (configResolved not yet called)
+      const rawAliases = config.resolve?.alias ?? []
+      const configAliases: AliasEntry[] = Array.isArray(rawAliases)
+        ? rawAliases
+        : Object.entries(rawAliases).map(([find, replacement]) => ({ find, replacement: replacement as string }))
+
       const existingOutput = Array.isArray(config.build?.rollupOptions?.output)
         ? config.build?.rollupOptions?.output[0]
         : config.build?.rollupOptions?.output
@@ -157,7 +169,7 @@ export function vikeIslandsPlugin(options: VikeIslandsPluginOptions): Plugin {
       return mergeConfig(config, {
         build: {
           rollupOptions: {
-            input: addBuildInputs(scanRoot, framework, config.build?.rollupOptions?.input),
+            input: addBuildInputs(scanRoot, configAliases, framework, config.build?.rollupOptions?.input),
             preserveEntrySignatures: 'strict',
             output: {
               manualChunks: mergeManualChunks(existingOutput?.manualChunks, framework),
@@ -171,53 +183,51 @@ export function vikeIslandsPlugin(options: VikeIslandsPluginOptions): Plugin {
       onBuildStart?.()
     },
 
-    resolveId: {
-      filter: {
-        id: new RegExp(`^(${ISLANDS_VUE_RUNTIME_PUBLIC_ID.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}|${ISLANDS_REACT_RUNTIME_PUBLIC_ID.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}|${ISLANDS_COMPONENT_PUBLIC_PREFIX.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}.+)$`),
-      },
-      handler(id) {
-        if (id === ISLANDS_VUE_RUNTIME_PUBLIC_ID) return RESOLVED_ISLANDS_VUE_RUNTIME_ID
-        if (id === ISLANDS_REACT_RUNTIME_PUBLIC_ID) return RESOLVED_ISLANDS_REACT_RUNTIME_ID
-        if (id.startsWith(ISLANDS_COMPONENT_PUBLIC_PREFIX)) return `${RESOLVED_ISLANDS_COMPONENT_PREFIX}${id.slice(ISLANDS_COMPONENT_PUBLIC_PREFIX.length)}`
-      },
+    resolveId(id, importer) {
+      if (id === ISLANDS_VUE_RUNTIME_PUBLIC_ID) return RESOLVED_ISLANDS_VUE_RUNTIME_ID
+      if (id === ISLANDS_REACT_RUNTIME_PUBLIC_ID) return RESOLVED_ISLANDS_REACT_RUNTIME_ID
+      if (id.startsWith(ISLANDS_COMPONENT_PUBLIC_PREFIX)) {
+        return `${RESOLVED_ISLANDS_COMPONENT_PREFIX}${id.slice(ISLANDS_COMPONENT_PUBLIC_PREFIX.length)}`
+      }
+      // Strip ?island and resolve the bare path via the normal resolver
+      if (id.endsWith('?island')) {
+        return this.resolve(id.replace('?island', ''), importer, { skipSelf: true }).then(resolved =>
+          resolved ? { id: resolved.id, moduleSideEffects: false } : null
+        )
+      }
     },
 
-    load: {
-      filter: {
-        id: new RegExp(`^(${RESOLVED_ISLANDS_VUE_RUNTIME_ID.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}|${RESOLVED_ISLANDS_REACT_RUNTIME_ID.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}|${RESOLVED_ISLANDS_COMPONENT_PREFIX.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}.+)$`),
-      },
-      handler(id) {
-        if (id === RESOLVED_ISLANDS_VUE_RUNTIME_ID) {
-          return [
-            `import * as vue from 'vue'`,
-            `export const createApp = vue.createApp`,
-            `export const h = vue.h`,
-            `export default { createApp: vue.createApp, h: vue.h }`,
-            '',
-          ].join('\n')
+    load(id: string) {
+      if (id === RESOLVED_ISLANDS_VUE_RUNTIME_ID) {
+        return [
+          `import * as vue from 'vue'`,
+          `export const createApp = vue.createApp`,
+          `export const h = vue.h`,
+          `export default { createApp: vue.createApp, h: vue.h }`,
+          '',
+        ].join('\n')
+      }
+      if (id === RESOLVED_ISLANDS_REACT_RUNTIME_ID) {
+        return [
+          `import React from 'react'`,
+          `import * as ReactDOMClient from 'react-dom/client'`,
+          `export const createElement = React.createElement`,
+          `export const hydrateRoot = ReactDOMClient.hydrateRoot`,
+          `export const createRoot = ReactDOMClient.createRoot`,
+          `export default { createElement: React.createElement, hydrateRoot: ReactDOMClient.hydrateRoot, createRoot: ReactDOMClient.createRoot }`,
+          '',
+        ].join('\n')
+      }
+      if (id.startsWith(RESOLVED_ISLANDS_COMPONENT_PREFIX)) {
+        const islandName = id.slice(RESOLVED_ISLANDS_COMPONENT_PREFIX.length)
+        const islandFiles = scanIslandImports(rootDir, aliases)
+        const filePath = islandFiles.get(islandName)
+        if (!filePath) {
+          throw new Error(`[vike-islands] Island component "${islandName}" not found.`)
         }
-        if (id === RESOLVED_ISLANDS_REACT_RUNTIME_ID) {
-          return [
-            `import React from 'react'`,
-            `import * as ReactDOMClient from 'react-dom/client'`,
-            `export const createElement = React.createElement`,
-            `export const hydrateRoot = ReactDOMClient.hydrateRoot`,
-            `export const createRoot = ReactDOMClient.createRoot`,
-            `export default { createElement: React.createElement, hydrateRoot: ReactDOMClient.hydrateRoot, createRoot: ReactDOMClient.createRoot }`,
-            '',
-          ].join('\n')
-        }
-        if (id.startsWith(RESOLVED_ISLANDS_COMPONENT_PREFIX)) {
-          const islandName = id.slice(RESOLVED_ISLANDS_COMPONENT_PREFIX.length)
-          const islandFiles = validateIslandFiles(rootDir, framework)
-          const filePath = islandFiles.get(islandName)
-          if (!filePath) {
-            throw new Error(`[vike-islands] Island component "${islandName}" not found.`)
-          }
-          const importPath = `/${normalizePathForVite(path.relative(rootDir, filePath))}`
-          return `export { default } from ${JSON.stringify(importPath)}`
-        }
-      },
+        const importPath = `/${normalizePathForVite(path.relative(rootDir, filePath))}`
+        return `export { default } from ${JSON.stringify(importPath)}`
+      }
     },
 
     transform: transform

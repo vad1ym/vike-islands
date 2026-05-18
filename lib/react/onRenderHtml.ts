@@ -1,24 +1,51 @@
-import React from 'react'
-import { renderToString } from 'react-dom/server'
+import { onRenderHtml as vikeReactOnRenderHtmlAsync } from 'vike-react/__internal/integration/onRenderHtml'
+import { dangerouslySkipEscape } from 'vike/server'
 import type { OnRenderHtmlAsync } from 'vike/types'
 import {
-  getAssetPath,
+  findManifestEntry,
   getInlineRuntimeSource,
   getIslandsComponentAssets,
   getUsedIslandNames,
   hasIslands,
   joinAssetPath,
-  renderDocumentHtml,
   serializeIslandsClientConfig,
   type ViteManifest,
-  findManifestEntry,
 } from '../core/onRenderHtmlCommon'
+
+type PageContext = OnRenderHtmlAsync extends (pageContext: infer T) => any ? T : never
 
 const ISLANDS_REACT_RUNTIME_PUBLIC_ID = '/@vike-islands/react-runtime'
 const ISLANDS_REACT_RUNTIME_NAME = 'vike-islands-react-runtime'
 
-function getInlineIslandsClientScript(): string {
-  return [
+function getReactRuntimeUrl(pageContext: PageContext): string | null {
+  const globalContext = (pageContext as any)._globalContext
+  const baseAssets = globalContext?.baseAssets ?? ''
+  const isProduction = globalContext?._isProduction ?? !!globalContext?.assetsManifest
+
+  if (!isProduction) {
+    return joinAssetPath(baseAssets, ISLANDS_REACT_RUNTIME_PUBLIC_ID)
+  }
+
+  const assetsManifest = globalContext?.assetsManifest as ViteManifest | undefined
+  if (!assetsManifest) return null
+
+  const entry = findManifestEntry(assetsManifest, (e) => (
+    !!e.isEntry && (e.name === ISLANDS_REACT_RUNTIME_NAME || e.src === 'vike-islands:react-runtime')
+  ))
+  if (!entry) return null
+  return joinAssetPath(baseAssets, `/${entry.file}`)
+}
+
+function buildIslandsInjection(pageContext: PageContext, html: string): string | null {
+  const islandNames = hasIslands(html) ? getUsedIslandNames(html) : []
+  const components = islandNames.length > 0
+    ? getIslandsComponentAssets(pageContext, islandNames)
+    : {}
+  const reactRuntime = getReactRuntimeUrl(pageContext)
+  if (!reactRuntime || Object.keys(components).length === 0) return null
+
+  const islandsClientConfig = serializeIslandsClientConfig({ reactRuntime, components })
+  const inlineScript = [
     getInlineRuntimeSource(import.meta.url, 'runtime-react.js'),
     `const config = window.__VIKE_ISLANDS__`,
     `const importByUrl = new Function("u", "return import(u)")`,
@@ -32,56 +59,28 @@ function getInlineIslandsClientScript(): string {
     `    loadReactRuntime,`,
     `  })`,
     `}`,
+  ].join('\n').replace(/<\/script/gi, '<\\/script')
+
+  return [
+    `<script>window.__VIKE_ISLANDS__=${islandsClientConfig}</script>`,
+    `<script type="module">${inlineScript}</script>`,
   ].join('\n')
 }
 
-const onRenderHtml: OnRenderHtmlAsync = async (pageContext): ReturnType<OnRenderHtmlAsync> => {
-  const Page = pageContext.config.Page as any
-  const layouts = ((pageContext.config as any).Layout ?? []) as any[]
+export const onRenderHtml: OnRenderHtmlAsync = async (pageContext) => {
+  const result = await vikeReactOnRenderHtmlAsync(pageContext)
 
-  let tree: any = React.createElement(Page, pageContext.routeParams ?? {})
-  for (const Layout of [...layouts].reverse()) {
-    tree = React.createElement(Layout, null, tree)
-  }
+  const documentHtml = (result as any).documentHtml
+  const htmlString: string = typeof documentHtml?.toString === 'function'
+    ? documentHtml.toString()
+    : String(documentHtml ?? '')
 
-  const html = renderToString(tree)
-  const islandNames = hasIslands(html) ? getUsedIslandNames(html) : []
-  const components = islandNames.length > 0
-    ? getIslandsComponentAssets(pageContext, islandNames)
-    : {}
-  const globalContext = (pageContext as any)._globalContext
-  const baseAssets = globalContext?.baseAssets ?? ''
-  const isProduction = globalContext?._isProduction ?? !!globalContext?.assetsManifest
-  const reactRuntime = !isProduction
-    ? joinAssetPath(baseAssets, ISLANDS_REACT_RUNTIME_PUBLIC_ID)
-    : getAssetPath(pageContext, findManifestEntry(globalContext?.assetsManifest as ViteManifest, (entry) => (
-      !!entry.isEntry &&
-      (entry.name === ISLANDS_REACT_RUNTIME_NAME || entry.src === 'vike-islands:react-runtime')
-    )))
-  const islandsClientConfig = reactRuntime && Object.keys(components).length > 0
-    ? serializeIslandsClientConfig({ reactRuntime, components })
-    : null
-  const islandsInlineClientScript = islandsClientConfig
-    ? getInlineIslandsClientScript().replace(/<\/script/gi, '<\\/script')
-    : null
+  const injection = buildIslandsInjection(pageContext, htmlString)
+  if (!injection) return result
 
-  const title = (pageContext.config as any).title ?? ''
-  const description = (pageContext.config as any).description ?? ''
-  const lang = (pageContext.config as any).lang ?? 'en'
-  const favicon = (pageContext.config as any).favicon ?? ''
-
+  const patched = htmlString.replace('</body>', `${injection}\n</body>`)
   return {
-    documentHtml: renderDocumentHtml({
-      html,
-      title,
-      description,
-      lang,
-      favicon,
-      islandsClientConfig,
-      islandsInlineClientScript,
-    }),
-    pageContext: {},
+    ...result,
+    documentHtml: dangerouslySkipEscape(patched),
   }
 }
-
-export { onRenderHtml }

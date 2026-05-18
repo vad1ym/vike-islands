@@ -4,7 +4,7 @@ import type { Config } from 'vike/types'
 
 export default {
   extends: [vikeVue, vikeIslands],
-  clientRouting: false,
+  clientRouting: true,
   meta: {
     Page: {
       env: { server: true, client: false }

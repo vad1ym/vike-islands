@@ -1,6 +1,6 @@
 {
   "name": "vike-islands",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Vike plugin for islands architecture — supports Vue and React",
   "type": "module",
   "license": "MIT",
@@ -21,16 +21,39 @@
       "types": "./lib/vue/entry.ts",
       "default": "./dist/vue.js"
     },
-    "./vue/+config": "./dist/vue/+config.js",
+    "./vue/+config": {
+      "types": "./lib/vue/+config.ts",
+      "default": "./dist/vue/+config.js"
+    },
     "./vue/IslandWrapper": "./lib/vue/IslandWrapper.vue",
-    "./vue/__internal/onRenderHtml": "./dist/vue/__internal/onRenderHtml.js",
+    "./vue/__internal/onRenderHtml": {
+      "types": "./lib/vue/onRenderHtml.ts",
+      "default": "./dist/vue/__internal/onRenderHtml.js"
+    },
+    "./vue/__internal/onAfterRenderHtml": {
+      "types": "./lib/vue/onAfterRenderHtml.ts",
+      "default": "./dist/vue/__internal/onAfterRenderHtml.js"
+    },
     "./react": {
       "types": "./lib/react/entry.ts",
       "default": "./dist/react.js"
     },
-    "./react/+config": "./dist/react/+config.js",
-    "./react/__internal/onRenderHtml": "./dist/react/__internal/onRenderHtml.js",
-    "./plugin": "./dist/plugin.js"
+    "./react/+config": {
+      "types": "./lib/react/+config.ts",
+      "default": "./dist/react/+config.js"
+    },
+    "./react/__internal/onRenderHtml": {
+      "types": "./lib/react/onRenderHtml.ts",
+      "default": "./dist/react/__internal/onRenderHtml.js"
+    },
+    "./plugin": {
+      "types": "./lib/plugin/index.ts",
+      "default": "./dist/plugin.js"
+    },
+    "./cache/lmdb": {
+      "types": "./lib/cache/lmdb.ts",
+      "default": "./dist/cache/lmdb.js"
+    }
   },
   "files": [
     "lib",
@@ -48,10 +71,12 @@
     "example:react:build": "pnpm run build && pnpm --filter example-islands-react build"
   },
   "devDependencies": {
+    "@types/node": "^22.0.0",
     "@types/react": "^18.3.0",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-vue": "^6.0.0",
     "changelogen": "^0.6.2",
+    "lmdb": "^3.5.4",
     "tsup": "^8.5.1",
     "typescript": "^6.0.0",
     "vike": "^0.4.259",
@@ -62,6 +87,7 @@
   "peerDependencies": {
     "@vue/compiler-dom": ">=3.5.0",
     "@vue/compiler-sfc": ">=3.5.0",
+    "lmdb": ">=3.0.0",
     "react": ">=18.0.0",
     "react-dom": ">=18.0.0",
     "vike": ">=0.4.259",
@@ -71,13 +97,30 @@
     "vue": ">=3.5.0"
   },
   "peerDependenciesMeta": {
-    "@vue/compiler-dom": { "optional": true },
-    "@vue/compiler-sfc": { "optional": true },
-    "react": { "optional": true },
-    "react-dom": { "optional": true },
-    "vike-react": { "optional": true },
-    "vike-vue": { "optional": true },
-    "vue": { "optional": true }
+    "@vue/compiler-dom": {
+      "optional": true
+    },
+    "@vue/compiler-sfc": {
+      "optional": true
+    },
+    "react": {
+      "optional": true
+    },
+    "react-dom": {
+      "optional": true
+    },
+    "vike-react": {
+      "optional": true
+    },
+    "lmdb": {
+      "optional": true
+    },
+    "vike-vue": {
+      "optional": true
+    },
+    "vue": {
+      "optional": true
+    }
   },
   "packageManager": "pnpm@10.11.0"
 }

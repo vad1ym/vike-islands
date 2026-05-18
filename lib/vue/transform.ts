@@ -7,11 +7,10 @@ import {
 import type {
   ElementNode,
   AttributeNode,
-  DirectiveNode,
   TemplateChildNode,
 } from '@vue/compiler-dom'
 import { ISLAND_DEFAULTS } from '../core/types'
-import type { IslandOptions } from '../core/types'
+import type { ResolvedIslandOptions } from '../core/types'
 
 let _counter = 0
 
@@ -23,35 +22,37 @@ export function resetCounter(): void {
   _counter = 0
 }
 
-function parseIslandOptions(raw: string | undefined): Required<IslandOptions> {
-  const opts: Required<IslandOptions> = { ...ISLAND_DEFAULTS }
-  if (!raw) return opts
+// Detects client:load, client:never, etc. and server:cache="TTL"
+// Returns null if neither is found (not an island usage)
+function parseClientServerAttrs(el: ElementNode): ResolvedIslandOptions | null {
+  let hydrate = ISLAND_DEFAULTS.hydrate
+  let cache: number | undefined
+  let hasClientAttr = false
+  let hasServerCache = false
 
-  const trimmed = raw.trim().replace(/^['"](.*)['"]$/, '$1')
-
-  const hydrateShorthands = ['load', 'idle', 'visible', 'interaction', 'manual', 'never'] as const
-  if (hydrateShorthands.includes(trimmed as (typeof hydrateShorthands)[number])) {
-    opts.hydrate = trimmed as Required<IslandOptions>['hydrate']
-    return opts
+  for (const prop of el.props) {
+    // client:{mode} as plain attribute e.g. client:load
+    if (prop.type === NodeTypes.ATTRIBUTE) {
+      const attrName = (prop as AttributeNode).name
+      if (attrName.startsWith('client:')) {
+        hasClientAttr = true
+        hydrate = attrName.slice('client:'.length) as ResolvedIslandOptions['hydrate']
+      }
+      if (attrName.startsWith('server:cache')) {
+        hasServerCache = true
+        const val = (prop as AttributeNode).value?.content
+        cache = val ? Number(val) : undefined
+      }
+    }
   }
 
-  try {
-    const json = trimmed
-      .replace(/'/g, '"')
-      .replace(/(\w+)\s*:/g, '"$1":')
-    const parsed = JSON.parse(json)
-    if (parsed.hydrate) opts.hydrate = parsed.hydrate
-    if (parsed.update) opts.update = parsed.update
-  } catch {
-    // ignore malformed options
-  }
-
-  return opts
+  if (!hasClientAttr && !hasServerCache) return null
+  return { hydrate, cache }
 }
 
 interface IslandNode {
   node: ElementNode
-  options: Required<IslandOptions>
+  options: ResolvedIslandOptions
   start: number
   end: number
 }
@@ -71,27 +72,14 @@ function collectIslandNodes(root: { children?: TemplateChildNode[] }): IslandNod
         el.tag.includes('.')
 
       if (isComponent) {
-        for (const prop of el.props) {
-          const isVIsland =
-            (prop.type === NodeTypes.DIRECTIVE && (prop as DirectiveNode).name === 'island') ||
-            (prop.type === NodeTypes.ATTRIBUTE && (prop as AttributeNode).name === 'v-island')
-
-          if (!isVIsland) continue
-
-          let rawValue: string | undefined
-          if (prop.type === NodeTypes.DIRECTIVE) {
-            rawValue = (prop as DirectiveNode).exp?.loc.source
-          } else {
-            rawValue = (prop as AttributeNode).value?.content
-          }
-
+        const options = parseClientServerAttrs(el)
+        if (options) {
           results.push({
             node: el,
-            options: parseIslandOptions(rawValue),
+            options,
             start: el.loc.start.offset,
             end: el.loc.end.offset,
           })
-          break
         }
       }
 
@@ -110,10 +98,10 @@ function collectIslandNodes(root: { children?: TemplateChildNode[] }): IslandNod
 function serializePropsFromNode(el: ElementNode): string {
   const parts: string[] = []
   for (const prop of el.props) {
-    const isVIsland =
-      (prop.type === NodeTypes.DIRECTIVE && (prop as DirectiveNode).name === 'island') ||
-      (prop.type === NodeTypes.ATTRIBUTE && (prop as AttributeNode).name === 'v-island')
-    if (isVIsland) continue
+    if (prop.type === NodeTypes.ATTRIBUTE) {
+      const name = (prop as AttributeNode).name
+      if (name.startsWith('client:') || name.startsWith('server:')) continue
+    }
     parts.push(prop.loc.source)
   }
   return parts.join(' ')
@@ -137,9 +125,8 @@ function transformSFC(
   for (const { node, options, start, end } of [...islands].sort((a, b) => b.start - a.start)) {
     const id = nextId()
     const propsAttr = serializePropsFromNode(node)
-
-    const replacement = `<IslandWrapper island-name="${node.tag}" island-id="${id}" data-hydrate="${options.hydrate}" data-update="${options.update}" :island-component="${node.tag}"${propsAttr ? ` ${propsAttr}` : ''} />`
-
+    const cacheTtlAttr = options.cache !== undefined ? ` :cache-ttl="${options.cache}"` : ''
+    const replacement = `<IslandWrapper island-name="${node.tag}" island-id="${id}" data-hydrate="${options.hydrate}"${cacheTtlAttr} :island-component="${node.tag}"${propsAttr ? ` ${propsAttr}` : ''} />`
     result = result.slice(0, start) + replacement + result.slice(end)
   }
 
@@ -149,14 +136,14 @@ function transformSFC(
     code.slice(templateOffset + templateSource.length)
   )
 
-  const wrapperImport = `import IslandWrapper from 'vike-islands/vue/IslandWrapper'`
-  if (!transformed.includes(wrapperImport)) {
+  const imp = `import IslandWrapper from 'vike-islands/vue/IslandWrapper'`
+  if (!transformed.includes(imp)) {
     const scriptSetupMatch = transformed.match(/<script\b[^>]*\bsetup\b[^>]*>/)
     if (scriptSetupMatch?.index !== undefined) {
       const insertAt = scriptSetupMatch.index + scriptSetupMatch[0].length
-      transformed = transformed.slice(0, insertAt) + `\n${wrapperImport}` + transformed.slice(insertAt)
+      transformed = transformed.slice(0, insertAt) + `\n${imp}` + transformed.slice(insertAt)
     } else {
-      transformed = `<script setup>\n${wrapperImport}\n</script>\n${transformed}`
+      transformed = `<script setup>\n${imp}\n</script>\n${transformed}`
     }
   }
 
@@ -165,7 +152,7 @@ function transformSFC(
 
 export function vueTransformHook(code: string, id: string): string | null | undefined {
   if (!id.endsWith('.vue')) return
-  if (!code.includes('v-island')) return
+  if (!code.includes('client:') && !code.includes('server:cache')) return
   if (code.includes('data-island=')) return
 
   const { descriptor, errors } = parseSFC(code, { filename: id })

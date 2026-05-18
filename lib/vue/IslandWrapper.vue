@@ -1,29 +1,78 @@
-<script setup lang="ts">
-import { computed, useAttrs } from 'vue'
+<script lang="ts">
+import { defineComponent, h, getCurrentInstance, createSSRApp } from 'vue'
+import { makeCacheKey } from '../core/cache'
+import type { IslandCacheAdapter } from '../core/cache'
 import type { Component } from 'vue'
 
-defineOptions({ inheritAttrs: false })
+const GLOBAL_CACHE_KEY = '__vikeIslandsCacheAdapter__'
+const isServer = typeof window === 'undefined'
 
-const { islandName, islandId, dataHydrate, dataUpdate, islandComponent } = defineProps<{
-  islandName: string
-  islandId: string
-  dataHydrate: string
-  dataUpdate: string
-  islandComponent?: Component
-}>()
+function getCacheAdapter(): IslandCacheAdapter | null {
+  return (globalThis as any)[GLOBAL_CACHE_KEY] ?? null
+}
 
-const attrs = useAttrs()
-const propsJson = computed(() => JSON.stringify(attrs))
+export default defineComponent({
+  name: 'IslandWrapper',
+
+  inheritAttrs: false,
+
+  props: {
+    islandName: { type: String, required: true },
+    islandId: { type: String, required: true },
+    dataHydrate: { type: String, required: true },
+    dataUpdate: { type: String, required: true },
+    islandComponent: { type: Object as () => Component, default: undefined },
+    cacheTtl: { type: Number, default: undefined },
+  },
+
+  async setup(props, { attrs }) {
+    const renderNormal = () => h('div', {
+      'data-island': props.islandName,
+      'data-island-id': props.islandId,
+      'data-hydrate': props.dataHydrate,
+      'data-update': props.dataUpdate,
+      'data-island-props': JSON.stringify(attrs),
+    }, props.islandComponent ? [h(props.islandComponent, attrs)] : [])
+
+    if (!isServer || props.cacheTtl === undefined) {
+      return renderNormal
+    }
+
+    // SSR + cache configured
+    const instance = getCurrentInstance()!
+    const cacheAdapter = getCacheAdapter()
+    const componentProps = attrs as Record<string, unknown>
+    const cacheKey = makeCacheKey(props.islandName, componentProps)
+
+    let innerHtml: string | null = null
+
+    if (cacheAdapter) {
+      innerHtml = await cacheAdapter.get(cacheKey)
+    }
+
+    if (innerHtml === null) {
+      const { renderToString } = await import('vue/server-renderer')
+      const { defineComponent: dc, h: hh, Suspense } = await import('vue')
+      const app = createSSRApp(dc({
+        setup: () => () => hh(Suspense, null, { default: () => hh(props.islandComponent!, componentProps) }),
+      }))
+      Object.assign(app._context, instance.appContext)
+      innerHtml = await renderToString(app)
+
+      if (cacheAdapter) {
+        await cacheAdapter.set(cacheKey, innerHtml, props.cacheTtl)
+      }
+    }
+
+    const html = innerHtml
+    return () => h('div', {
+      'data-island': props.islandName,
+      'data-island-id': props.islandId,
+      'data-hydrate': props.dataHydrate,
+      'data-update': props.dataUpdate,
+      'data-island-props': JSON.stringify(componentProps),
+      innerHTML: html,
+    })
+  },
+})
 </script>
-
-<template>
-  <div
-    :data-island="islandName"
-    :data-island-id="islandId"
-    :data-hydrate="dataHydrate"
-    :data-update="dataUpdate"
-    :data-island-props="propsJson"
-  >
-    <component :is="islandComponent" v-bind="attrs" />
-  </div>
-</template>

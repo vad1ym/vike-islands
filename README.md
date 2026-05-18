@@ -5,12 +5,12 @@ Islands architecture for [Vike](https://vike.dev). Supports Vue and React.
 Keep pages fully SSR-only and hydrate only the components you explicitly mark as islands.
 
 - No full-page framework hydration
-- Island components discovered by filename: `*.island.vue` / `*.island.tsx`
+- Mark any component as an island with `?island` on the import
 - Client bootstrap injected only when the page actually contains islands
 - Framework runtime loaded lazily on first island hydration
 - Each framework ships its own adapter — only the one you use is bundled
 
-**[Vue Setup](#vue-setup) · [React Setup](#react-setup) · [Hydration Modes](#hydration-modes) · [Manual Hydration](#manual-hydration) · [Conventions](#conventions) · [Examples](#examples) · [How It Works](#how-it-works)**
+**[Vue Setup](#vue-setup) · [React Setup](#react-setup) · [Hydration Modes](#hydration-modes) · [SSR Caching](#ssr-caching) · [Manual Hydration](#manual-hydration) · [How It Works](#how-it-works)**
 
 ---
 
@@ -75,50 +75,25 @@ export default {
 
 `clientRouting: false` and `Page.env.client = false` keep the page shell SSR-only.
 
-### 3. Create an island component
+### 3. Use a component as an island
 
-```vue
-<!-- components/Counter.island.vue -->
-<script setup lang="ts">
-import { ref } from 'vue'
-
-const { initialCount = 0, label = 'Counter' } = defineProps<{
-  initialCount?: number
-  label?: string
-}>()
-
-const count = ref(initialCount)
-</script>
-
-<template>
-  <div class="counter">
-    <p>{{ label }}</p>
-    <button @click="count--">−</button>
-    <span>{{ count }}</span>
-    <button @click="count++">+</button>
-  </div>
-</template>
-```
-
-### 4. Use it in a page
-
-Import the island and mark it with `v-island`:
+Add `?island` to the import — no need to rename or modify the component file:
 
 ```vue
 <!-- pages/index/+Page.vue -->
 <script setup lang="ts">
-import Counter from '@/components/Counter.island.vue'
+import Counter from '@/components/Counter.vue?island'
 </script>
 
 <template>
   <div>
     <h1>My page</h1>
-    <Counter v-island :initial-count="0" label="My island" />
+    <Counter client:load :initial-count="0" label="My island" />
   </div>
 </template>
 ```
 
-The Vite plugin transforms the component at build time. No extra config needed.
+TypeScript types for `?island` imports are included automatically — no `env.d.ts` needed.
 
 ---
 
@@ -163,51 +138,19 @@ export default {
 } satisfies Config
 ```
 
-### 3. Create an island component
+### 3. Use a component as an island
 
-```tsx
-// components/Counter.island.tsx
-import { useState } from 'react'
-
-interface Props {
-  initialCount?: number
-  label?: string
-}
-
-export default function Counter({ initialCount = 0, label = 'Counter' }: Props) {
-  const [count, setCount] = useState(initialCount)
-
-  return (
-    <div className="counter">
-      <p>{label}</p>
-      <button onClick={() => setCount(c => c - 1)}>−</button>
-      <span>{count}</span>
-      <button onClick={() => setCount(c => c + 1)}>+</button>
-    </div>
-  )
-}
-```
-
-### 4. Use it in a page
-
-React uses the `<Island>` wrapper component instead of a directive:
+Same `?island` import — the plugin transforms JSX automatically:
 
 ```tsx
 // pages/index/+Page.tsx
-import { Island } from 'vike-islands/react'
-import Counter from '@/components/Counter.island'
+import Counter from '@/components/Counter?island'
 
 export default function Page() {
   return (
     <div>
       <h1>My page</h1>
-      <Island
-        name="Counter"
-        component={Counter}
-        hydrate="visible"
-        initialCount={0}
-        label="My island"
-      />
+      <Counter client:load initialCount={0} label="My island" />
     </div>
   )
 }
@@ -230,19 +173,90 @@ Controls when the island hydrates on the client.
 
 Default: `visible`.
 
-### Vue syntax
+### Vue
 
 ```vue
-<Counter v-island />
-<Counter v-island="'load'" />
-<Counter v-island="'interaction'" />
-<Counter v-island="{ hydrate: 'interaction', update: 'patch' }" />
+<Counter client:load />
+<Counter client:visible />
+<Counter client:idle />
+<Counter client:interaction />
+<Counter client:never />
 ```
 
-### React syntax
+### React
 
 ```tsx
-<Island name="Counter" component={Counter} hydrate="interaction" />
+<Counter client:load />
+<Counter client:visible />
+<Counter client:interaction />
+<Counter client:never />
+```
+
+---
+
+## SSR Caching
+
+Cache the SSR HTML of an island on the first render and serve it from cache on subsequent requests. The cache key is derived from the island name and its props.
+
+Useful for expensive SSR sections that rarely change — product lists, article bodies, navigation trees.
+
+### Setup
+
+Install the LMDB adapter (or bring your own):
+
+```bash
+pnpm add lmdb
+```
+
+```ts
+// vite.config.ts
+import { vikeIslands } from 'vike-islands/vue' // or 'vike-islands/react'
+import { createLmdbCache } from 'vike-islands/cache/lmdb'
+
+export default defineConfig({
+  plugins: [
+    vikeIslands({ cache: createLmdbCache() }),
+    // ...
+  ],
+})
+```
+
+### Vue
+
+```vue
+<!-- SSR-only, cached 9999 seconds -->
+<ProductList client:never server:cache="9999" />
+
+<!-- hydrated on load, cached 60 seconds -->
+<ProductCard client:load server:cache="60" :product="product" />
+
+<!-- cache only, no hydration -->
+<HeavyWidget server:cache="300" />
+```
+
+### React
+
+```tsx
+<ProductList client:never server:cache={9999} />
+<ProductCard client:load server:cache={60} product={product} />
+<HeavyWidget server:cache={300} />
+```
+
+### Custom adapter
+
+```ts
+import type { IslandCacheAdapter } from 'vike-islands/cache/lmdb'
+
+const myAdapter: IslandCacheAdapter = {
+  async get(key) {
+    return redis.get(key)
+  },
+  async set(key, html, ttl) {
+    await redis.set(key, html, { EX: ttl })
+  },
+}
+
+vikeIslands({ cache: myAdapter })
 ```
 
 ---
@@ -254,14 +268,10 @@ For `hydrate: 'manual'` islands, trigger hydration from your own code:
 ```ts
 // Vue
 import { hydrateIslandById } from 'vike-islands/vue'
-
 await hydrateIslandById('i1')
-```
 
-```ts
 // React
 import { hydrateIslandById } from 'vike-islands/react'
-
 await hydrateIslandById('i1')
 ```
 
@@ -269,33 +279,10 @@ The island id is assigned automatically by the transform (`i1`, `i2`, …).
 
 ---
 
-## Conventions
-
-### Filenames
-
-```
-Counter.island.vue      # Vue
-Counter.island.tsx      # React
-Counter.island.jsx      # React (JS)
-```
-
-### Unique names
-
-Island names must be unique by basename across the entire project. This is invalid:
-
-```
-components/header/Counter.island.vue
-components/footer/Counter.island.vue  ← duplicate name "Counter"
-```
-
----
-
 ## Examples
 
 - [examples/vue](./examples/vue) — Vue + vike-vue
 - [examples/react](./examples/react) — React + vike-react
-
-Run an example:
 
 ```bash
 pnpm run example:vue
@@ -306,7 +293,7 @@ pnpm run example:react
 
 ## How It Works
 
-1. The Vite plugin scans the project for `*.island.*` files at build time.
+1. The Vite plugin scans the project for `?island` imports at build time.
 2. Each island gets its own bundle entry — loaded only if the page uses it.
 3. The framework runtime (Vue / React) gets a separate bundle — shared across islands.
 4. On SSR, `onRenderHtml` detects which islands appear in the rendered HTML.
