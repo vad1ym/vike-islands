@@ -20,7 +20,6 @@ export default defineComponent({
     islandName: { type: String, required: true },
     islandId: { type: String, required: true },
     dataHydrate: { type: String, required: true },
-    dataUpdate: { type: String, required: true },
     islandComponent: { type: Object as () => Component, default: undefined },
     cacheTtl: { type: Number, default: undefined },
   },
@@ -30,7 +29,6 @@ export default defineComponent({
       'data-island': props.islandName,
       'data-island-id': props.islandId,
       'data-hydrate': props.dataHydrate,
-      'data-update': props.dataUpdate,
       'data-island-props': JSON.stringify(attrs),
     }, props.islandComponent ? [h(props.islandComponent, attrs)] : [])
 
@@ -69,7 +67,6 @@ export default defineComponent({
       'data-island': props.islandName,
       'data-island-id': props.islandId,
       'data-hydrate': props.dataHydrate,
-      'data-update': props.dataUpdate,
       'data-island-props': JSON.stringify(componentProps),
       innerHTML: html,
     })

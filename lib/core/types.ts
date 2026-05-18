@@ -1,5 +1,7 @@
 export type HydrateMode = 'load' | 'idle' | 'visible' | 'interaction' | 'manual' | 'never'
 
+export type UpdateMode = 'static' | 'patch' | 'remount'
+
 export interface IslandOptions {
   hydrate?: HydrateMode
   /** Cache TTL in seconds. Requires cache adapter passed to vikeIslands({ cache }) */

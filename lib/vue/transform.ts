@@ -126,7 +126,7 @@ function transformSFC(
     const id = nextId()
     const propsAttr = serializePropsFromNode(node)
     const cacheTtlAttr = options.cache !== undefined ? ` :cache-ttl="${options.cache}"` : ''
-    const replacement = `<IslandWrapper island-name="${node.tag}" island-id="${id}" data-hydrate="${options.hydrate}"${cacheTtlAttr} :island-component="${node.tag}"${propsAttr ? ` ${propsAttr}` : ''} />`
+    const replacement = `<IslandWrapper island-name="${node.tag}" island-id="${id}" data-hydrate="${options.hydrate}"${cacheTtlAttr} :island-component="${node.tag}"${propsAttr ? ` ${propsAttr}` : ''}/>`
     result = result.slice(0, start) + replacement + result.slice(end)
   }
 

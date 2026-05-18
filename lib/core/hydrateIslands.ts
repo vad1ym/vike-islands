@@ -1,11 +1,10 @@
 import { runHydrationStrategy } from './strategies'
-import type { HydrateMode, UpdateMode } from './types'
+import type { HydrateMode } from './types'
 
 export interface IslandEntry {
   id: string
   name: string
   hydrate: HydrateMode
-  update: UpdateMode
   props: Record<string, unknown>
   el: HTMLElement
 }
@@ -28,8 +27,7 @@ export function collectIslands(): IslandEntry[] {
     if (!id) continue
 
     const name = el.dataset.island!
-    const hydrate = (el.dataset.hydrate ?? 'visible') as HydrateMode
-    const update = (el.dataset.update ?? 'static') as UpdateMode
+    const hydrate = (el.dataset.hydrate ?? 'load') as HydrateMode
 
     let props: Record<string, unknown> = {}
     if (el.dataset.islandProps) {
@@ -40,7 +38,7 @@ export function collectIslands(): IslandEntry[] {
       }
     }
 
-    entries.push({ id, name, hydrate, update, props, el })
+    entries.push({ id, name, hydrate, props, el })
   }
 
   return entries
@@ -106,14 +104,13 @@ export function createIslandHydrator<C, R>(options: HydrateIslandsOptions<C, R>)
     }
 
     const name = el.dataset.island!
-    const hydrate = (el.dataset.hydrate ?? 'visible') as HydrateMode
-    const update = (el.dataset.update ?? 'static') as UpdateMode
+    const hydrate = (el.dataset.hydrate ?? 'load') as HydrateMode
     let props: Record<string, unknown> = {}
     if (el.dataset.islandProps) {
       try { props = JSON.parse(el.dataset.islandProps) } catch {}
     }
 
-    await mountIsland({ id, name, hydrate, update, props, el })
+    await mountIsland({ id, name, hydrate, props, el })
   }
 
   return { hydrateIslands, hydrateIslandById }
