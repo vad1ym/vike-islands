@@ -1,13 +1,14 @@
 export type HydrateMode = 'load' | 'idle' | 'visible' | 'interaction' | 'manual' | 'never'
 
-export type UpdateMode = 'static' | 'patch' | 'remount'
-
 export interface IslandOptions {
   hydrate?: HydrateMode
-  update?: UpdateMode
+  /** Cache TTL in seconds. Requires cache adapter passed to vikeIslands({ cache }) */
+  cache?: number
 }
 
-export const ISLAND_DEFAULTS: Required<IslandOptions> = {
-  hydrate: 'visible',
-  update: 'static',
+export type ResolvedIslandOptions = Required<Omit<IslandOptions, 'cache'>> & { cache?: number }
+
+export const ISLAND_DEFAULTS: ResolvedIslandOptions = {
+  hydrate: 'load',
+  cache: undefined,
 }

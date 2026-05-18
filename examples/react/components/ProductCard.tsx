@@ -11,10 +11,11 @@ interface ProductCardProps {
   inStock: boolean
   description: string
   imageIndex: number
+  thumbnail?: string
 }
 
 export default function ProductCard({
-  id, title, price, rating, reviewCount, category, tags, inStock, description, imageIndex,
+  id, title, price, rating, reviewCount, category, tags, inStock, description, imageIndex, thumbnail,
 }: ProductCardProps) {
   const [liked, setLiked] = useState(false)
   const [added, setAdded] = useState(false)
@@ -27,7 +28,8 @@ export default function ProductCard({
 
   return (
     <div className={`product-card${inStock ? '' : ' out-of-stock'}`}>
-      <div className="product-image" style={{ background: `hsl(${imageIndex * 37 % 360}, 60%, 85%)` }}>
+      <div className="product-image" style={thumbnail ? {} : { background: `hsl(${imageIndex * 37 % 360}, 60%, 85%)` }}>
+        {thumbnail && <img src={thumbnail} alt={title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
         <span className="product-id">#{id}</span>
         <button className={`like-btn${liked ? ' liked' : ''}`} onClick={() => setLiked((l: boolean) => !l)}>
           {liked ? '♥' : '♡'}

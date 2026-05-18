@@ -1,8 +1,17 @@
 <script lang="ts" setup>
+import { ref, onServerPrefetch } from 'vue'
 import ProductCard from './ProductCard.vue'
 
-const res = await fetch('https://dummyjson.com/products?limit=100&select=id,title,price,rating,stock,category,tags,description,thumbnail')
-const { products } = await res.json()
+const products = ref<any[]>([])
+
+async function fetchProducts() {
+  const res = await fetch('https://dummyjson.com/products?limit=100&select=id,title,price,rating,stock,category,tags,description,thumbnail')
+  const data = await res.json()
+  products.value = data.products
+}
+
+onServerPrefetch(fetchProducts)
+// onMounted(fetchProducts)
 </script>
 
 <template>

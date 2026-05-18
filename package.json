@@ -21,16 +21,39 @@
       "types": "./lib/vue/entry.ts",
       "default": "./dist/vue.js"
     },
-    "./vue/+config": "./dist/vue/+config.js",
+    "./vue/+config": {
+      "types": "./lib/vue/+config.ts",
+      "default": "./dist/vue/+config.js"
+    },
     "./vue/IslandWrapper": "./lib/vue/IslandWrapper.vue",
-    "./vue/__internal/onRenderHtml": "./dist/vue/__internal/onRenderHtml.js",
+    "./vue/__internal/onRenderHtml": {
+      "types": "./lib/vue/onRenderHtml.ts",
+      "default": "./dist/vue/__internal/onRenderHtml.js"
+    },
+    "./vue/__internal/onAfterRenderHtml": {
+      "types": "./lib/vue/onAfterRenderHtml.ts",
+      "default": "./dist/vue/__internal/onAfterRenderHtml.js"
+    },
     "./react": {
       "types": "./lib/react/entry.ts",
       "default": "./dist/react.js"
     },
-    "./react/+config": "./dist/react/+config.js",
-    "./react/__internal/onRenderHtml": "./dist/react/__internal/onRenderHtml.js",
-    "./plugin": "./dist/plugin.js"
+    "./react/+config": {
+      "types": "./lib/react/+config.ts",
+      "default": "./dist/react/+config.js"
+    },
+    "./react/__internal/onRenderHtml": {
+      "types": "./lib/react/onRenderHtml.ts",
+      "default": "./dist/react/__internal/onRenderHtml.js"
+    },
+    "./plugin": {
+      "types": "./lib/plugin/index.ts",
+      "default": "./dist/plugin.js"
+    },
+    "./cache/lmdb": {
+      "types": "./lib/cache/lmdb.ts",
+      "default": "./dist/cache/lmdb.js"
+    }
   },
   "files": [
     "lib",
@@ -53,6 +76,7 @@
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-vue": "^6.0.0",
     "changelogen": "^0.6.2",
+    "lmdb": "^3.5.4",
     "tsup": "^8.5.1",
     "typescript": "^6.0.0",
     "vike": "^0.4.259",
@@ -63,6 +87,7 @@
   "peerDependencies": {
     "@vue/compiler-dom": ">=3.5.0",
     "@vue/compiler-sfc": ">=3.5.0",
+    "lmdb": ">=3.0.0",
     "react": ">=18.0.0",
     "react-dom": ">=18.0.0",
     "vike": ">=0.4.259",
@@ -85,6 +110,9 @@
       "optional": true
     },
     "vike-react": {
+      "optional": true
+    },
+    "lmdb": {
       "optional": true
     },
     "vike-vue": {

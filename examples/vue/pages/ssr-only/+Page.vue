@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Counter from '@/components/Counter.island.vue'
+import Counter from '@/components/Counter.vue?island'
 </script>
 
 <template>
@@ -18,7 +18,7 @@ import Counter from '@/components/Counter.island.vue'
         Although this page ships no Vue app for the page shell,
         this counter component is independently hydrated when it becomes visible.
       </p>
-      <Counter v-island :initial-count="0" label="SSR-only page island" />
+      <Counter client:visible :initial-count="0" label="SSR-only page island" />
     </section>
 
     <section class="demo-section static">

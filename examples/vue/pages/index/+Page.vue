@@ -5,6 +5,6 @@ import ProductList from '@/components/ProductList.vue'
 <template>
   <div>
     <h1>Product Catalog</h1>
-    <ProductList />
+    <ProductList client:never server:cache="9999" />
   </div>
 </template>
