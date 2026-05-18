@@ -1,3 +1,4 @@
+// @ts-ignore — vike-react exports this path at runtime but has no type declaration for it
 import { onRenderHtml as vikeReactOnRenderHtmlAsync } from 'vike-react/__internal/integration/onRenderHtml'
 import { dangerouslySkipEscape } from 'vike/server'
 import type { OnRenderHtmlAsync } from 'vike/types'
