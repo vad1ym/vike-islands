@@ -22,8 +22,11 @@ importers:
         version: 18.3.1(react@18.3.1)
       vike-react:
         specifier: '>=0.6.0'
-        version: 0.6.23(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(vike@0.4.259(h3@1.15.11)(react-streaming@0.4.17(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(srvx@0.11.15)(vite@8.0.13(@types/node@24.12.4)(esbuild@0.27.7)(jiti@2.7.0)))
+        version: 0.6.23(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(vike@0.4.259(h3@1.15.11)(react-streaming@0.4.17(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(srvx@0.11.15)(vite@8.0.13(@types/node@22.19.19)(esbuild@0.27.7)(jiti@2.7.0)))
     devDependencies:
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.19.19
       '@types/react':
         specifier: ^18.3.0
         version: 18.3.28
@@ -32,13 +35,10 @@ importers:
         version: 18.3.7(@types/react@18.3.28)
       '@vitejs/plugin-vue':
         specifier: ^6.0.0
-        version: 6.0.7(vite@8.0.13(@types/node@24.12.4)(esbuild@0.27.7)(jiti@2.7.0))(vue@3.5.34(typescript@6.0.3))
+        version: 6.0.7(vite@8.0.13(@types/node@22.19.19)(esbuild@0.27.7)(jiti@2.7.0))(vue@3.5.34(typescript@6.0.3))
       changelogen:
         specifier: ^0.6.2
         version: 0.6.2(magicast@0.5.3)
-      playwright:
-        specifier: ^1.60.0
-        version: 1.60.0
       tsup:
         specifier: ^8.5.1
         version: 8.5.1(jiti@2.7.0)(postcss@8.5.14)(typescript@6.0.3)
@@ -47,13 +47,13 @@ importers:
         version: 6.0.3
       vike:
         specifier: ^0.4.259
-        version: 0.4.259(h3@1.15.11)(react-streaming@0.4.17(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(srvx@0.11.15)(vite@8.0.13(@types/node@24.12.4)(esbuild@0.27.7)(jiti@2.7.0))
+        version: 0.4.259(h3@1.15.11)(react-streaming@0.4.17(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(srvx@0.11.15)(vite@8.0.13(@types/node@22.19.19)(esbuild@0.27.7)(jiti@2.7.0))
       vike-vue:
         specifier: ^0.9.0
-        version: 0.9.11(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(vike@0.4.259(h3@1.15.11)(react-streaming@0.4.17(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(srvx@0.11.15)(vite@8.0.13(@types/node@24.12.4)(esbuild@0.27.7)(jiti@2.7.0)))(vue@3.5.34(typescript@6.0.3))
+        version: 0.9.11(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(vike@0.4.259(h3@1.15.11)(react-streaming@0.4.17(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(srvx@0.11.15)(vite@8.0.13(@types/node@22.19.19)(esbuild@0.27.7)(jiti@2.7.0)))(vue@3.5.34(typescript@6.0.3))
       vite:
         specifier: ^8.0.0
-        version: 8.0.13(@types/node@24.12.4)(esbuild@0.27.7)(jiti@2.7.0)
+        version: 8.0.13(@types/node@22.19.19)(esbuild@0.27.7)(jiti@2.7.0)
       vue:
         specifier: ^3.5.0
         version: 3.5.34(typescript@6.0.3)
@@ -1377,6 +1377,9 @@ packages:
   '@types/nlcst@2.0.3':
     resolution: {integrity: sha512-vSYNSDe6Ix3q+6Z7ri9lyWqgGhJTmzRjZRqyq15N0Z/1/UnVsno9G/N40NBijoYx2seFDIl0+B2mgAb9mezUCA==}
 
+  '@types/node@22.19.19':
+    resolution: {integrity: sha512-dyh/xO2Fh5bYrfWaaqGrRQQGkNdmYw6AmaAUvYeUMNTWQtvb796ikLdmTchRmOlOiIJ1TDXfWgVx1QkUlQ6Hew==}
+
   '@types/node@24.12.4':
     resolution: {integrity: sha512-GUUEShf+PBCGW2KaXwcIt3Yk+e3pkKwWKb9GSyM9WQVE+ep2jzmHdGsHzu4wgcZy5fN9FBdVzjpBQsYlpfpgLA==}
 
@@ -1967,11 +1970,6 @@ packages:
     resolution: {integrity: sha512-eKpRKAovdpZtR1WopLHxlBWvAgPny3c4gX1G5Jhwmmw4XJj0ifSD5qB5TOo8hmA0wlRKDAOAhEE1yVPgs6Fgcg==}
     engines: {node: '>=14.14'}
 
-  fsevents@2.3.2:
-    resolution: {integrity: sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==}
-    engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
-    os: [darwin]
-
   fsevents@2.3.3:
     resolution: {integrity: sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==}
     engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
@@ -2537,16 +2535,6 @@ packages:
   pkg-types@2.3.1:
     resolution: {integrity: sha512-y+ichcgc2LrADuhLNAx8DFjVfgz91pRxfZdI3UDhxHvcVEZsenLO+7XaU5vOp0u/7V/wZ+plyuQxtrDlZJ+yeg==}
 
-  playwright-core@1.60.0:
-    resolution: {integrity: sha512-9bW6zvX/m0lEbgTKJ6YppOKx8H3VOPBMOCFh2irXFOT4BbHgrx5hPjwJYLT40Lu+4qtD36qKc/Hn56StUW57IA==}
-    engines: {node: '>=18'}
-    hasBin: true
-
-  playwright@1.60.0:
-    resolution: {integrity: sha512-hheHdokM8cdqCb0lcE3s+zT4t4W+vvjpGxsZlDnikarzx8tSzMebh3UiFtgqwFwnTnjYQcsyMF8ei2mCO/tpeA==}
-    engines: {node: '>=18'}
-    hasBin: true
-
   postcss-load-config@6.0.1:
     resolution: {integrity: sha512-oPtTM4oerL+UXmx+93ytZVN82RrlY/wPUV8IeDxFrzIjXOLF1pN+EmKPLbubvKHT2HC20xXsCAH2Z+CKV6Oz/g==}
     engines: {node: '>= 18'}
@@ -2937,6 +2925,9 @@ packages:
 
   uncrypto@0.1.3:
     resolution: {integrity: sha512-Ql87qFHB3s/De2ClA9e0gsnS6zXG27SkTiSJwjCc9MebbfapQfuPzumMIUMi38ezPZVNFcHI9sUIepeQfw8J8Q==}
+
+  undici-types@6.21.0:
+    resolution: {integrity: sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==}
 
   undici-types@7.16.0:
     resolution: {integrity: sha512-Zz+aZWSj8LE6zoxD+xrjh4VfkIG8Ya6LvYkZqtUQGJPZjYl53ypCaUwWqo7eI0x66KBGeRo+mlBEkMSeSZ38Nw==}
@@ -4237,6 +4228,10 @@ snapshots:
     dependencies:
       '@types/unist': 3.0.3
 
+  '@types/node@22.19.19':
+    dependencies:
+      undici-types: 6.21.0
+
   '@types/node@24.12.4':
     dependencies:
       undici-types: 7.16.0
@@ -4256,10 +4251,10 @@ snapshots:
 
   '@ungap/structured-clone@1.3.1': {}
 
-  '@universal-deploy/netlify@0.2.2(srvx@0.11.15)(vite@8.0.13(@types/node@24.12.4)(esbuild@0.27.7)(jiti@2.7.0))':
+  '@universal-deploy/netlify@0.2.2(srvx@0.11.15)(vite@8.0.13(@types/node@22.19.19)(esbuild@0.27.7)(jiti@2.7.0))':
     dependencies:
       '@universal-deploy/store': 0.2.1(srvx@0.11.15)
-      vite: 8.0.13(@types/node@24.12.4)(esbuild@0.27.7)(jiti@2.7.0)
+      vite: 8.0.13(@types/node@22.19.19)(esbuild@0.27.7)(jiti@2.7.0)
     transitivePeerDependencies:
       - srvx
 
@@ -4270,13 +4265,13 @@ snapshots:
     transitivePeerDependencies:
       - srvx
 
-  '@universal-deploy/node@0.1.6(vite@8.0.13(@types/node@24.12.4)(esbuild@0.27.7)(jiti@2.7.0))':
+  '@universal-deploy/node@0.1.6(vite@8.0.13(@types/node@22.19.19)(esbuild@0.27.7)(jiti@2.7.0))':
     dependencies:
       '@universal-deploy/store': 0.2.1(srvx@0.11.15)
       magic-string: 0.30.21
       srvx: 0.11.15
     optionalDependencies:
-      vite: 8.0.13(@types/node@24.12.4)(esbuild@0.27.7)(jiti@2.7.0)
+      vite: 8.0.13(@types/node@22.19.19)(esbuild@0.27.7)(jiti@2.7.0)
 
   '@universal-deploy/node@0.1.6(vite@8.0.13(@types/node@24.12.4)(esbuild@0.28.0)(jiti@2.7.0))':
     dependencies:
@@ -4292,16 +4287,16 @@ snapshots:
     optionalDependencies:
       srvx: 0.11.15
 
-  '@universal-deploy/vite@0.1.9(h3@1.15.11)(srvx@0.11.15)(vite@8.0.13(@types/node@24.12.4)(esbuild@0.27.7)(jiti@2.7.0))':
+  '@universal-deploy/vite@0.1.9(h3@1.15.11)(srvx@0.11.15)(vite@8.0.13(@types/node@22.19.19)(esbuild@0.27.7)(jiti@2.7.0))':
     dependencies:
-      '@universal-deploy/netlify': 0.2.2(srvx@0.11.15)(vite@8.0.13(@types/node@24.12.4)(esbuild@0.27.7)(jiti@2.7.0))
-      '@universal-deploy/node': 0.1.6(vite@8.0.13(@types/node@24.12.4)(esbuild@0.27.7)(jiti@2.7.0))
+      '@universal-deploy/netlify': 0.2.2(srvx@0.11.15)(vite@8.0.13(@types/node@22.19.19)(esbuild@0.27.7)(jiti@2.7.0))
+      '@universal-deploy/node': 0.1.6(vite@8.0.13(@types/node@22.19.19)(esbuild@0.27.7)(jiti@2.7.0))
       '@universal-deploy/store': 0.2.1(srvx@0.11.15)
       '@universal-middleware/express': 0.4.26(h3@1.15.11)(srvx@0.11.15)
       magic-string: 0.30.21
       rou3: 0.8.1
     optionalDependencies:
-      vite: 8.0.13(@types/node@24.12.4)(esbuild@0.27.7)(jiti@2.7.0)
+      vite: 8.0.13(@types/node@22.19.19)(esbuild@0.27.7)(jiti@2.7.0)
     transitivePeerDependencies:
       - '@cloudflare/workers-types'
       - '@hattip/core'
@@ -4399,10 +4394,10 @@ snapshots:
       vite: 6.4.2(@types/node@24.12.4)(jiti@2.7.0)(lightningcss@1.32.0)
       vue: 3.5.34(typescript@6.0.3)
 
-  '@vitejs/plugin-vue@6.0.7(vite@8.0.13(@types/node@24.12.4)(esbuild@0.27.7)(jiti@2.7.0))(vue@3.5.34(typescript@6.0.3))':
+  '@vitejs/plugin-vue@6.0.7(vite@8.0.13(@types/node@22.19.19)(esbuild@0.27.7)(jiti@2.7.0))(vue@3.5.34(typescript@6.0.3))':
     dependencies:
       '@rolldown/pluginutils': 1.0.1
-      vite: 8.0.13(@types/node@24.12.4)(esbuild@0.27.7)(jiti@2.7.0)
+      vite: 8.0.13(@types/node@22.19.19)(esbuild@0.27.7)(jiti@2.7.0)
       vue: 3.5.34(typescript@6.0.3)
 
   '@vitejs/plugin-vue@6.0.7(vite@8.0.13(@types/node@24.12.4)(esbuild@0.28.0)(jiti@2.7.0))(vue@3.5.34(typescript@6.0.3))':
@@ -5056,9 +5051,6 @@ snapshots:
       graceful-fs: 4.2.11
       jsonfile: 6.2.1
       universalify: 2.0.1
-
-  fsevents@2.3.2:
-    optional: true
 
   fsevents@2.3.3:
     optional: true
@@ -5824,14 +5816,6 @@ snapshots:
       exsolve: 1.0.8
       pathe: 2.0.3
 
-  playwright-core@1.60.0: {}
-
-  playwright@1.60.0:
-    dependencies:
-      playwright-core: 1.60.0
-    optionalDependencies:
-      fsevents: 2.3.2
-
   postcss-load-config@6.0.1(jiti@2.7.0)(postcss@8.5.14):
     dependencies:
       lilconfig: 3.1.3
@@ -6310,6 +6294,8 @@ snapshots:
 
   uncrypto@0.1.3: {}
 
+  undici-types@6.21.0: {}
+
   undici-types@7.16.0: {}
 
   unicorn-magic@0.3.0: {}
@@ -6413,12 +6399,12 @@ snapshots:
       '@types/unist': 3.0.3
       vfile-message: 4.0.3
 
-  vike-react@0.6.23(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(vike@0.4.259(h3@1.15.11)(react-streaming@0.4.17(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(srvx@0.11.15)(vite@8.0.13(@types/node@24.12.4)(esbuild@0.27.7)(jiti@2.7.0))):
+  vike-react@0.6.23(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(vike@0.4.259(h3@1.15.11)(react-streaming@0.4.17(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(srvx@0.11.15)(vite@8.0.13(@types/node@22.19.19)(esbuild@0.27.7)(jiti@2.7.0))):
     dependencies:
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
       react-streaming: 0.4.17(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      vike: 0.4.259(h3@1.15.11)(react-streaming@0.4.17(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(srvx@0.11.15)(vite@8.0.13(@types/node@24.12.4)(esbuild@0.27.7)(jiti@2.7.0))
+      vike: 0.4.259(h3@1.15.11)(react-streaming@0.4.17(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(srvx@0.11.15)(vite@8.0.13(@types/node@22.19.19)(esbuild@0.27.7)(jiti@2.7.0))
 
   vike-react@0.6.23(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(vike@0.4.259(h3@1.15.11)(react-streaming@0.4.17(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(srvx@0.11.15)(vite@8.0.13(@types/node@24.12.4)(esbuild@0.28.0)(jiti@2.7.0))):
     dependencies:
@@ -6427,12 +6413,12 @@ snapshots:
       react-streaming: 0.4.17(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       vike: 0.4.259(h3@1.15.11)(react-streaming@0.4.17(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(srvx@0.11.15)(vite@8.0.13(@types/node@24.12.4)(esbuild@0.28.0)(jiti@2.7.0))
 
-  vike-vue@0.9.11(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(vike@0.4.259(h3@1.15.11)(react-streaming@0.4.17(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(srvx@0.11.15)(vite@8.0.13(@types/node@24.12.4)(esbuild@0.27.7)(jiti@2.7.0)))(vue@3.5.34(typescript@6.0.3)):
+  vike-vue@0.9.11(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(vike@0.4.259(h3@1.15.11)(react-streaming@0.4.17(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(srvx@0.11.15)(vite@8.0.13(@types/node@22.19.19)(esbuild@0.27.7)(jiti@2.7.0)))(vue@3.5.34(typescript@6.0.3)):
     dependencies:
       magic-string: 0.30.21
       oxc-parser: 0.104.0(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)
       oxc-walker: 0.6.0(oxc-parser@0.104.0(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0))
-      vike: 0.4.259(h3@1.15.11)(react-streaming@0.4.17(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(srvx@0.11.15)(vite@8.0.13(@types/node@24.12.4)(esbuild@0.27.7)(jiti@2.7.0))
+      vike: 0.4.259(h3@1.15.11)(react-streaming@0.4.17(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(srvx@0.11.15)(vite@8.0.13(@types/node@22.19.19)(esbuild@0.27.7)(jiti@2.7.0))
       vue: 3.5.34(typescript@6.0.3)
     transitivePeerDependencies:
       - '@emnapi/core'
@@ -6449,7 +6435,7 @@ snapshots:
       - '@emnapi/core'
       - '@emnapi/runtime'
 
-  vike@0.4.259(h3@1.15.11)(react-streaming@0.4.17(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(srvx@0.11.15)(vite@8.0.13(@types/node@24.12.4)(esbuild@0.27.7)(jiti@2.7.0)):
+  vike@0.4.259(h3@1.15.11)(react-streaming@0.4.17(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(srvx@0.11.15)(vite@8.0.13(@types/node@22.19.19)(esbuild@0.27.7)(jiti@2.7.0)):
     dependencies:
       '@babel/core': 7.29.0
       '@babel/types': 7.29.0
@@ -6458,7 +6444,7 @@ snapshots:
       '@brillout/picocolors': 1.0.31
       '@brillout/vite-plugin-server-entry': 0.7.18
       '@universal-deploy/store': 0.2.1(srvx@0.11.15)
-      '@universal-deploy/vite': 0.1.9(h3@1.15.11)(srvx@0.11.15)(vite@8.0.13(@types/node@24.12.4)(esbuild@0.27.7)(jiti@2.7.0))
+      '@universal-deploy/vite': 0.1.9(h3@1.15.11)(srvx@0.11.15)(vite@8.0.13(@types/node@22.19.19)(esbuild@0.27.7)(jiti@2.7.0))
       '@universal-middleware/core': 0.4.17(h3@1.15.11)(srvx@0.11.15)
       '@universal-middleware/node': 0.1.0(h3@1.15.11)(srvx@0.11.15)
       cac: 6.7.14
@@ -6472,10 +6458,10 @@ snapshots:
       sirv: 3.0.2
       source-map-support: 0.5.21
       tinyglobby: 0.2.16
-      vite-plugin-wrapper: 0.1.0(vite@8.0.13(@types/node@24.12.4)(esbuild@0.27.7)(jiti@2.7.0))
+      vite-plugin-wrapper: 0.1.0(vite@8.0.13(@types/node@22.19.19)(esbuild@0.27.7)(jiti@2.7.0))
     optionalDependencies:
       react-streaming: 0.4.17(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      vite: 8.0.13(@types/node@24.12.4)(esbuild@0.27.7)(jiti@2.7.0)
+      vite: 8.0.13(@types/node@22.19.19)(esbuild@0.27.7)(jiti@2.7.0)
     transitivePeerDependencies:
       - '@cloudflare/workers-types'
       - '@hattip/core'
@@ -6578,9 +6564,9 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  vite-plugin-wrapper@0.1.0(vite@8.0.13(@types/node@24.12.4)(esbuild@0.27.7)(jiti@2.7.0)):
+  vite-plugin-wrapper@0.1.0(vite@8.0.13(@types/node@22.19.19)(esbuild@0.27.7)(jiti@2.7.0)):
     dependencies:
-      vite: 8.0.13(@types/node@24.12.4)(esbuild@0.27.7)(jiti@2.7.0)
+      vite: 8.0.13(@types/node@22.19.19)(esbuild@0.27.7)(jiti@2.7.0)
 
   vite-plugin-wrapper@0.1.0(vite@8.0.13(@types/node@24.12.4)(esbuild@0.28.0)(jiti@2.7.0)):
     dependencies:
@@ -6600,7 +6586,7 @@ snapshots:
       jiti: 2.7.0
       lightningcss: 1.32.0
 
-  vite@8.0.13(@types/node@24.12.4)(esbuild@0.27.7)(jiti@2.7.0):
+  vite@8.0.13(@types/node@22.19.19)(esbuild@0.27.7)(jiti@2.7.0):
     dependencies:
       lightningcss: 1.32.0
       picomatch: 4.0.4
@@ -6608,7 +6594,7 @@ snapshots:
       rolldown: 1.0.1
       tinyglobby: 0.2.16
     optionalDependencies:
-      '@types/node': 24.12.4
+      '@types/node': 22.19.19
       esbuild: 0.27.7
       fsevents: 2.3.3
       jiti: 2.7.0
