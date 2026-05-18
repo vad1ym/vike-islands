@@ -1,0 +1,76 @@
+{
+  "name": "vike-islands",
+  "version": "0.1.0",
+  "description": "Vike plugin for islands architecture — supports Vue and React",
+  "type": "module",
+  "license": "MIT",
+  "keywords": [
+    "vike",
+    "islands",
+    "vue",
+    "react",
+    "vite",
+    "ssr"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vad1ym/vike-islands.git"
+  },
+  "exports": {
+    "./vue": {
+      "types": "./lib/vue/entry.ts",
+      "default": "./dist/vue.js"
+    },
+    "./vue/+config": "./dist/vue/+config.js",
+    "./vue/IslandWrapper": "./lib/vue/IslandWrapper.vue",
+    "./vue/__internal/onRenderHtml": "./dist/vue/__internal/onRenderHtml.js",
+    "./react": {
+      "types": "./lib/react/entry.ts",
+      "default": "./dist/react.js"
+    },
+    "./react/+config": "./dist/react/+config.js",
+    "./react/__internal/onRenderHtml": "./dist/react/__internal/onRenderHtml.js",
+    "./plugin": "./dist/plugin.js"
+  },
+  "files": [
+    "lib",
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "example:vue": "pnpm run build && pnpm --filter example-islands-vue dev",
+    "example:vue:build": "pnpm run build && pnpm --filter example-islands-vue build",
+    "example:react": "pnpm run build && pnpm --filter example-islands-react dev",
+    "example:react:build": "pnpm run build && pnpm --filter example-islands-react build"
+  },
+  "dependencies": {
+    "@vue/compiler-dom": "^3.5.0",
+    "@vue/compiler-sfc": "^3.5.0",
+    "playwright": "^1.60.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-vue": "^6.0.0",
+    "tsup": "^8.5.1",
+    "typescript": "^6.0.0",
+    "vike": "^0.4.259",
+    "vike-vue": "^0.9.0",
+    "vite": "^8.0.0",
+    "vue": "^3.5.0"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0",
+    "vike": ">=0.4.259",
+    "vike-react": ">=0.6.0",
+    "vite": ">=5.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react": { "optional": true },
+    "react-dom": { "optional": true },
+    "vike-react": { "optional": true }
+  },
+  "packageManager": "pnpm@10.11.0"
+}

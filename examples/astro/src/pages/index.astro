@@ -1,0 +1,16 @@
+---
+import Counter from '@/components/Counter.vue'
+import Layout from '../layouts/Layout.astro'
+import ProductList from '@/components/ProductList.vue'
+---
+
+<Layout>
+  <div>
+    <h1>Product Catalog</h1>
+
+    <div class="product-grid">
+      <ProductList />
+      <Counter client:visible />
+    </div>
+  </div>
+</Layout>

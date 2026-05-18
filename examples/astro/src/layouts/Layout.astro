@@ -1,0 +1,32 @@
+---
+const { title = 'vike-islands demo' } = Astro.props
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+  </head>
+  <body>
+    <div class="layout">
+      <header class="header">
+        <a class="brand" href="/">astro-islands demo</a>
+        <nav class="nav">
+          <a href="/">Home</a>
+          <a href="/ssr-only">SSR-only page</a>
+        </nav>
+      </header>
+
+      <main class="content">
+        <slot />
+      </main>
+
+      <footer class="footer">
+        <small>astro-islands — islands architecture for Astro + Vue</small>
+      </footer>
+    </div>
+  </body>
+</html>
+

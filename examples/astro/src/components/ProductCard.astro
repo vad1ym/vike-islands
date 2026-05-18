@@ -1,0 +1,40 @@
+---
+const { productId, title, price, rating, reviewCount, category, tags, inStock, description, imageIndex } = Astro.props
+---
+
+<div class="product-card">
+  <div class="product-image" style={`background: hsl(${imageIndex * 37 % 360}, 60%, 85%)`}>
+    <span class="product-id">#{productId}</span>
+  </div>
+
+  <div class="product-body">
+    <div class="product-meta">
+      <span class="category">{category}</span>
+      <span class={`stock-badge ${inStock ? 'in-stock' : 'no-stock'}`}>
+        {inStock ? 'In Stock' : 'Out of Stock'}
+      </span>
+    </div>
+
+    <h3 class="product-title">{title}</h3>
+    <p class="product-desc">{description}</p>
+
+    <div class="product-tags">
+      {tags.map((tag: string) => <span class="tag">{tag}</span>)}
+    </div>
+
+    <div class="product-rating">
+      {[1,2,3,4,5].map(i => (
+        <span class={`star ${i <= Math.round(rating) ? 'filled' : ''}`}>★</span>
+      ))}
+      <span class="rating-value">{rating.toFixed(1)}</span>
+      <span class="review-count">({reviewCount} reviews)</span>
+    </div>
+
+    <div class="product-footer">
+      <div class="price-block">
+        <span class="price">${price.toFixed(2)}</span>
+        <span class="price-per">per unit</span>
+      </div>
+    </div>
+  </div>
+</div>
