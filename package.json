@@ -39,6 +39,9 @@
   "scripts": {
     "build": "tsup",
     "typecheck": "tsc --noEmit",
+    "changelog": "changelogen",
+    "changelog:dry": "changelogen --no-output",
+    "release": "changelogen --release",
     "example:vue": "pnpm run build && pnpm --filter example-islands-vue dev",
     "example:vue:build": "pnpm run build && pnpm --filter example-islands-vue build",
     "example:react": "pnpm run build && pnpm --filter example-islands-react dev",
@@ -46,13 +49,13 @@
   },
   "dependencies": {
     "@vue/compiler-dom": "^3.5.0",
-    "@vue/compiler-sfc": "^3.5.0",
-    "playwright": "^1.60.0"
+    "@vue/compiler-sfc": "^3.5.0"
   },
   "devDependencies": {
     "@types/react": "^18.3.0",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-vue": "^6.0.0",
+    "changelogen": "^0.6.2",
     "tsup": "^8.5.1",
     "typescript": "^6.0.0",
     "vike": "^0.4.259",
