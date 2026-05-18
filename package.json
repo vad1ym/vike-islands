@@ -1,6 +1,6 @@
 {
   "name": "vike-islands",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Vike plugin for islands architecture — supports Vue and React",
   "type": "module",
   "license": "MIT",
@@ -71,13 +71,27 @@
     "vue": ">=3.5.0"
   },
   "peerDependenciesMeta": {
-    "@vue/compiler-dom": { "optional": true },
-    "@vue/compiler-sfc": { "optional": true },
-    "react": { "optional": true },
-    "react-dom": { "optional": true },
-    "vike-react": { "optional": true },
-    "vike-vue": { "optional": true },
-    "vue": { "optional": true }
+    "@vue/compiler-dom": {
+      "optional": true
+    },
+    "@vue/compiler-sfc": {
+      "optional": true
+    },
+    "react": {
+      "optional": true
+    },
+    "react-dom": {
+      "optional": true
+    },
+    "vike-react": {
+      "optional": true
+    },
+    "vike-vue": {
+      "optional": true
+    },
+    "vue": {
+      "optional": true
+    }
   },
   "packageManager": "pnpm@10.11.0"
 }
