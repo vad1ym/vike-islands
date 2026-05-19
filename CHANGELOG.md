@@ -1,6 +1,18 @@
 # Changelog
 
 
+## v0.1.6
+
+[compare changes](https://github.com/vad1ym/vike-islands/compare/v0.1.5...v0.1.6)
+
+### 🚀 Enhancements
+
+- Add cache key ([67055f4](https://github.com/vad1ym/vike-islands/commit/67055f4))
+
+### ❤️ Contributors
+
+- Vadym Bulakh ([@vad1ym](https://github.com/vad1ym))
+
 ## v0.1.5
 
 [compare changes](https://github.com/vad1ym/vike-islands/compare/v0.1.4...v0.1.5)

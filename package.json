@@ -1,6 +1,6 @@
 {
   "name": "vike-islands",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Vike plugin for islands architecture — supports Vue and React",
   "type": "module",
   "license": "MIT",
