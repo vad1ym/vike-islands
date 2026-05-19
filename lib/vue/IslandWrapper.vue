@@ -63,11 +63,12 @@ export default defineComponent({
     }
 
     const html = innerHtml
+    const isNeverHydrate = props.dataHydrate === 'never'
     return () => h('div', {
       'data-island': props.islandName,
       'data-island-id': props.islandId,
       'data-hydrate': props.dataHydrate,
-      'data-island-props': JSON.stringify(componentProps),
+      ...(isNeverHydrate || props.cacheTtl !== undefined ? {} : { 'data-island-props': JSON.stringify(componentProps) }),
       innerHTML: html,
     })
   },

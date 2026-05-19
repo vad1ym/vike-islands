@@ -31,7 +31,7 @@ export function createLmdbCache(options: LmdbCacheOptions = {}): IslandCacheAdap
     async set(key: string, html: string, ttl?: number): Promise<void> {
       const db = await getDb()
       const expiresAt = ttl !== undefined ? Date.now() + ttl * 1000 : null
-      await db.put(key, { html, expiresAt })
+      await db.transaction(() => db.put(key, { html, expiresAt }))
     },
   }
 }
