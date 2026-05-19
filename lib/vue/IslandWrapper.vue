@@ -22,6 +22,7 @@ export default defineComponent({
     dataHydrate: { type: String, required: true },
     islandComponent: { type: Object as () => Component, default: undefined },
     cacheTtl: { type: Number, default: undefined },
+    cacheKey: { type: String, default: undefined },
   },
 
   async setup(props, { attrs }) {
@@ -36,14 +37,15 @@ export default defineComponent({
       return renderNormal
     }
 
-    // SSR + cache configured
-    const instance = getCurrentInstance()!
+    if (!props.cacheKey) {
+      console.warn(`[vike-islands] Island "${props.islandName}" has server:cache but no cache-key. Add cache-key="unique-key" to enable caching.`)
+      return renderNormal
+    }
+
     const cacheAdapter = getCacheAdapter()
-    const componentProps = attrs as Record<string, unknown>
-    const cacheKey = makeCacheKey(props.islandName, componentProps)
+    const cacheKey = makeCacheKey(props.islandName, props.cacheKey)
 
     let innerHtml: string | null = null
-
     if (cacheAdapter) {
       innerHtml = await cacheAdapter.get(cacheKey)
     }
@@ -51,6 +53,8 @@ export default defineComponent({
     if (innerHtml === null) {
       const { renderToString } = await import('vue/server-renderer')
       const { defineComponent: dc, h: hh, Suspense } = await import('vue')
+      const instance = getCurrentInstance()!
+      const componentProps = attrs as Record<string, unknown>
       const app = createSSRApp(dc({
         setup: () => () => hh(Suspense, null, { default: () => hh(props.islandComponent!, componentProps) }),
       }))
@@ -68,7 +72,7 @@ export default defineComponent({
       'data-island': props.islandName,
       'data-island-id': props.islandId,
       'data-hydrate': props.dataHydrate,
-      ...(isNeverHydrate || props.cacheTtl !== undefined ? {} : { 'data-island-props': JSON.stringify(componentProps) }),
+      ...(isNeverHydrate ? {} : { 'data-island-props': JSON.stringify(attrs) }),
       innerHTML: html,
     })
   },

@@ -27,27 +27,28 @@ export function resetCounter(): void {
 function parseClientServerAttrs(el: ElementNode): ResolvedIslandOptions | null {
   let hydrate = ISLAND_DEFAULTS.hydrate
   let cache: number | undefined
+  let cacheKey: string | undefined
   let hasClientAttr = false
   let hasServerCache = false
 
   for (const prop of el.props) {
-    // client:{mode} as plain attribute e.g. client:load
-    if (prop.type === NodeTypes.ATTRIBUTE) {
-      const attrName = (prop as AttributeNode).name
-      if (attrName.startsWith('client:')) {
-        hasClientAttr = true
-        hydrate = attrName.slice('client:'.length) as ResolvedIslandOptions['hydrate']
-      }
-      if (attrName.startsWith('server:cache')) {
-        hasServerCache = true
-        const val = (prop as AttributeNode).value?.content
-        cache = val ? Number(val) : undefined
-      }
+    if (prop.type !== NodeTypes.ATTRIBUTE) continue
+    const attrName = (prop as AttributeNode).name
+    const attrValue = (prop as AttributeNode).value?.content
+
+    if (attrName.startsWith('client:')) {
+      hasClientAttr = true
+      hydrate = attrName.slice('client:'.length) as ResolvedIslandOptions['hydrate']
+    } else if (attrName === 'server:cache') {
+      hasServerCache = true
+      cache = attrValue ? Number(attrValue) : undefined
+    } else if (attrName === 'server:cache-key') {
+      cacheKey = attrValue
     }
   }
 
   if (!hasClientAttr && !hasServerCache) return null
-  return { hydrate, cache }
+  return { hydrate, cache, cacheKey }
 }
 
 interface IslandNode {
@@ -126,7 +127,8 @@ function transformSFC(
     const id = nextId()
     const propsAttr = serializePropsFromNode(node)
     const cacheTtlAttr = options.cache !== undefined ? ` :cache-ttl="${options.cache}"` : ''
-    const replacement = `<IslandWrapper island-name="${node.tag}" island-id="${id}" data-hydrate="${options.hydrate}"${cacheTtlAttr} :island-component="${node.tag}"${propsAttr ? ` ${propsAttr}` : ''}/>`
+    const cacheKeyAttr = options.cacheKey !== undefined ? ` cache-key="${options.cacheKey}"` : ''
+    const replacement = `<IslandWrapper island-name="${node.tag}" island-id="${id}" data-hydrate="${options.hydrate}"${cacheTtlAttr}${cacheKeyAttr} :island-component="${node.tag}"${propsAttr ? ` ${propsAttr}` : ''}/>`
     result = result.slice(0, start) + replacement + result.slice(end)
   }
 

@@ -8,7 +8,7 @@ export interface IslandOptions {
   cache?: number
 }
 
-export type ResolvedIslandOptions = Required<Omit<IslandOptions, 'cache'>> & { cache?: number }
+export type ResolvedIslandOptions = Required<Omit<IslandOptions, 'cache' | 'cacheKey'>> & { cache?: number; cacheKey?: string }
 
 export const ISLAND_DEFAULTS: ResolvedIslandOptions = {
   hydrate: 'load',

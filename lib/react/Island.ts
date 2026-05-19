@@ -6,6 +6,8 @@ type IslandProps<P extends Record<string, unknown>> = P & {
   name: string
   component: ComponentType<P>
   hydrate?: HydrateMode
+  cache?: number
+  cacheKey?: string
 }
 
 let islandCounter = 0
@@ -20,6 +22,8 @@ export function Island<P extends Record<string, unknown>>(props: IslandProps<P>)
     name,
     component: Component,
     hydrate = 'load',
+    cache: _cache,
+    cacheKey: _cacheKey,
     ...componentProps
   } = props
 

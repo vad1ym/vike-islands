@@ -223,23 +223,21 @@ export default defineConfig({
 
 ### Vue
 
+`server:cache-key` is required when using `server:cache` — it defines the cache key explicitly, avoiding expensive serialization of large props.
+
 ```vue
 <!-- SSR-only, cached 9999 seconds -->
-<ProductList client:never server:cache="9999" />
+<ProductList client:never server:cache="9999" server:cache-key="products-spain" />
 
 <!-- hydrated on load, cached 60 seconds -->
-<ProductCard client:load server:cache="60" :product="product" />
-
-<!-- cache only, no hydration -->
-<HeavyWidget server:cache="300" />
+<ProductCard client:load server:cache="60" server:cache-key="card-42" :product="product" />
 ```
 
 ### React
 
 ```tsx
-<ProductList client:never server:cache={9999} />
-<ProductCard client:load server:cache={60} product={product} />
-<HeavyWidget server:cache={300} />
+<ProductList client:never server:cache={9999} server:cache-key="products-spain" />
+<ProductCard client:load server:cache={60} server:cache-key="card-42" product={product} />
 ```
 
 ### Custom adapter

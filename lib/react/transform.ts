@@ -11,10 +11,11 @@ function getIslandImports(code: string): Set<string> {
   return names
 }
 
-// Parse client:{mode} and server:cache="{ttl}" from attrs string
-function parseIslandAttrs(attrsStr: string): { hydrate: string; cache?: number; cleanedAttrs: string } {
+// Parse client:{mode}, server:cache="{ttl}", server:cache-key="{key}" from attrs string
+function parseIslandAttrs(attrsStr: string): { hydrate: string; cache?: number; cacheKey?: string; cleanedAttrs: string } {
   let hydrate = 'load'
   let cache: number | undefined
+  let cacheKey: string | undefined
   let cleanedAttrs = attrsStr
 
   const clientMatch = cleanedAttrs.match(/\s+client:(\w+)\b/)
@@ -29,7 +30,13 @@ function parseIslandAttrs(attrsStr: string): { hydrate: string; cache?: number; 
     cleanedAttrs = cleanedAttrs.replace(/\s+server:cache=(?:"[^"]*"|'[^']*'|\{[^}]*\})/, '')
   }
 
-  return { hydrate, cache, cleanedAttrs }
+  const cacheKeyMatch = cleanedAttrs.match(/\s+server:cache-key=(?:"([^"]*)"|'([^']*)')/)
+  if (cacheKeyMatch) {
+    cacheKey = cacheKeyMatch[1] ?? cacheKeyMatch[2]
+    cleanedAttrs = cleanedAttrs.replace(/\s+server:cache-key=(?:"[^"]*"|'[^']*')/, '')
+  }
+
+  return { hydrate, cache, cacheKey, cleanedAttrs }
 }
 
 export function reactTransformHook(code: string, id: string): string | null | undefined {
@@ -47,10 +54,11 @@ export function reactTransformHook(code: string, id: string): string | null | un
     if (!islandComponents.has(tag)) return match
 
     hasAnyIsland = true
-    const { hydrate, cache, cleanedAttrs } = parseIslandAttrs(attrsStr)
+    const { hydrate, cache, cacheKey, cleanedAttrs } = parseIslandAttrs(attrsStr)
     const cacheAttr = cache !== undefined ? ` cache={${cache}}` : ''
+    const cacheKeyAttr = cacheKey !== undefined ? ` cacheKey="${cacheKey}"` : ''
 
-    return `<__VikeIsland__ name="${tag}" component={${tag}} hydrate="${hydrate}"${cacheAttr}${cleanedAttrs} />`
+    return `<__VikeIsland__ name="${tag}" component={${tag}} hydrate="${hydrate}"${cacheAttr}${cacheKeyAttr}${cleanedAttrs} />`
   })
 
   if (!hasAnyIsland) return null
