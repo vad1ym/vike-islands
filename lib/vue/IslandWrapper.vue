@@ -26,6 +26,8 @@ export default defineComponent({
   },
 
   async setup(props, { attrs }) {
+    const instance = getCurrentInstance()
+
     const renderNormal = () => h('div', {
       'data-island': props.islandName,
       'data-island-id': props.islandId,
@@ -53,12 +55,11 @@ export default defineComponent({
     if (innerHtml === null) {
       const { renderToString } = await import('vue/server-renderer')
       const { defineComponent: dc, h: hh, Suspense } = await import('vue')
-      const instance = getCurrentInstance()!
       const componentProps = attrs as Record<string, unknown>
       const app = createSSRApp(dc({
         setup: () => () => hh(Suspense, null, { default: () => hh(props.islandComponent!, componentProps) }),
       }))
-      Object.assign(app._context, instance.appContext)
+      if (instance) Object.assign(app._context, instance.appContext)
       innerHtml = await renderToString(app)
 
       if (cacheAdapter) {
