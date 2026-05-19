@@ -1,6 +1,18 @@
 # Changelog
 
 
+## v0.1.7
+
+[compare changes](https://github.com/vad1ym/vike-islands/compare/v0.1.6...v0.1.7)
+
+### 🩹 Fixes
+
+- Place getting vue instance before await ([15626cc](https://github.com/vad1ym/vike-islands/commit/15626cc))
+
+### ❤️ Contributors
+
+- Vadym Bulakh ([@vad1ym](https://github.com/vad1ym))
+
 ## v0.1.6
 
 [compare changes](https://github.com/vad1ym/vike-islands/compare/v0.1.5...v0.1.6)
