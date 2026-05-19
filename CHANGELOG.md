@@ -1,6 +1,18 @@
 # Changelog
 
 
+## v0.1.5
+
+[compare changes](https://github.com/vad1ym/vike-islands/compare/v0.1.4...v0.1.5)
+
+### 🩹 Fixes
+
+- Dont serialize props when has cache ([fa6f581](https://github.com/vad1ym/vike-islands/commit/fa6f581))
+
+### ❤️ Contributors
+
+- Vadym Bulakh ([@vad1ym](https://github.com/vad1ym))
+
 ## v0.1.4
 
 [compare changes](https://github.com/vad1ym/vike-islands/compare/v0.1.3...v0.1.4)
