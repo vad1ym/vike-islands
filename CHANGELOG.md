@@ -1,6 +1,18 @@
 # Changelog
 
 
+## v0.1.4
+
+[compare changes](https://github.com/vad1ym/vike-islands/compare/v0.1.3...v0.1.4)
+
+### 🩹 Fixes
+
+- **cache:** Hash long lmdb cache key ([e8eb361](https://github.com/vad1ym/vike-islands/commit/e8eb361))
+
+### ❤️ Contributors
+
+- Vadym Bulakh ([@vad1ym](https://github.com/vad1ym))
+
 ## v0.1.3
 
 
