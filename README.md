@@ -1,5 +1,8 @@
 # vike-islands
 
+> [!WARNING]
+> This library is already usable in real projects, but it is still not battle-tested across a wide range of production setups. Use it deliberately and validate the behavior against your components, hydration modes, and deployment environment.
+
 Islands architecture for [Vike](https://vike.dev). Supports Vue and React.
 
 Keep pages fully SSR-only and hydrate only the components you explicitly mark as islands.
